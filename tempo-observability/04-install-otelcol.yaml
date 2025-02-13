@@ -16,6 +16,13 @@ spec:
         protocols:
           grpc: {}
           http: {}
+      jaeger:
+        protocols:
+          grpc: {}
+          thrift_http: {}
+          thrift_compact: {}
+          thrift_binary: {}
+      zipkin: {}
 
     processors:
 
@@ -37,7 +44,7 @@ spec:
       extensions: [bearertokenauth]
       pipelines:
         traces:
-          receivers: [otlp]
+          receivers: [otlp, jaeger, zipkin]
           exporters: [otlphttp]
 ---
 apiVersion: rbac.authorization.k8s.io/v1

@@ -1,0 +1,48 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-sidecar
+  namespace: tempo-observability
+spec:
+  mode: sidecar
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      jaeger:
+        protocols:
+          thrift_compact:
+            endpoint: 0.0.0.0:6831
+          thrift_binary:
+            endpoint: 0.0.0.0:6832
+          thrift_http:
+            endpoint: 0.0.0.0:14268
+          grpc:
+            endpoint: 0.0.0.0:14250
+      zipkin:
+        endpoint: 0.0.0.0:9411
+    processors:
+      resourcedetection/env:
+        detectors: [ env ]
+        timeout: 2s
+        override: false
+
+    exporters:
+      otlphttp/tempo:
+        endpoint: http://dev-collector.tempo-observability.svc.cluster.local:4318
+      otlphttp/jaeger:
+        endpoint: http://jaeger-collector.jaeger-observability.svc.cluster.local:4318
+        tls:
+          ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
+      debug: {}
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp,jaeger,zipkin]
+          processors: [resourcedetection/env]
+          exporters: [debug, otlphttp/tempo, otlphttp/jaeger]

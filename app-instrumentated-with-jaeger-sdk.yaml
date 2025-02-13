@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: workloads
+---
+# This app is instrumented and reports data to localhost so it needs a sidecar
+# kubectl port-forward -n workloads myapp 8080:8080
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp
+  namespace: workloads
+  annotations:
+    sidecar.opentelemetry.io/inject: "tempo-observability/otel-sidecar"
+spec:
+  containers:
+    - name: myapp
+      image: jaegertracing/vertx-create-span:operator-e2e-tests
+      ports:
+        - containerPort: 8080
+          protocol: TCP

@@ -1,0 +1,41 @@
+apiVersion: maistra.io/v2
+kind: ServiceMeshControlPlane
+metadata:
+  name: basic
+  namespace: istio-system
+spec:
+  version: v2.6
+  mode: ClusterWide
+  tracing:
+    type: Jaeger
+    sampling: 10000
+  addons:
+    kiali:
+      enabled: false
+      name: kiali
+    grafana:
+      enabled: false
+    jaeger:
+      name: jaeger
+      install:
+        storage:
+          type: Memory
+        ingress:
+          enabled: true
+  meshConfig:
+    extensionProviders:
+      - name: otel
+        opentelemetry:
+          port: 4317
+          service: otel-collector.istio-system.svc.cluster.local
+---
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: mesh-default
+  namespace: istio-system
+spec:
+  tracing:
+    - providers:
+        - name: otel
+      randomSamplingPercentage: 100
